@@ -13,10 +13,12 @@ const PhotoQuiz: React.FC = () => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [points, setPoints] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
+  const [difficulty, setDifficulty] = useState<string>('débutant');
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchRandomPokemon();
-  }, []);
+    if (gameStarted) fetchRandomPokemon();
+  }, [gameStarted]);
 
   const fetchRandomPokemon = async () => {
     try {
@@ -31,13 +33,9 @@ const PhotoQuiz: React.FC = () => {
       const speciesData = await speciesResponse.json();
       const nameEn = speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
       const nameFr = speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
-      setPokemon({
-        nameEn,
-        nameFr,
-        sprite: data.sprites.front_default
-      });
+      setPokemon({ nameEn, nameFr, sprite: data.sprites.front_default });
     } catch (error) {
-      console.error('Erreur lors de la récupération du Pokémon :', error);
+      console.error(error);
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
   };
@@ -49,10 +47,7 @@ const PhotoQuiz: React.FC = () => {
     const possibleAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (possibleAnswers.includes(userGuess)) {
       const newStreak = streak + 1;
-      let multiplier = 1;
-      if (newStreak >= 10) multiplier = 3;
-      else if (newStreak >= 5) multiplier = 2;
-      setPoints(points + 1 * multiplier);
+      setPoints(points + 1);
       setStreak(newStreak);
       setFeedback('Bravo, bonne réponse !');
       setIsRevealed(true);
@@ -67,13 +62,52 @@ const PhotoQuiz: React.FC = () => {
     if (!pokemon) return;
     setPoints(Math.max(points - 2, 0));
     setStreak(0);
-    setFeedback(`Dommage, la réponse était : ${pokemon.nameFr}.`);
+    setFeedback(`Dommage, la réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}.`);
     setIsRevealed(true);
   };
+
+  const getFilterStyle = () => {
+    if (isRevealed) return 'none';
+    if (difficulty === 'débutant') return 'none';
+    if (difficulty === 'facile') return 'blur(4px)';
+    if (difficulty === 'moyen') return 'blur(4px) grayscale(100%)';
+    if (difficulty === 'difficile') return 'blur(8px) grayscale(100%)';
+    if (difficulty === 'expert') return 'blur(12px) grayscale(100%)';
+    return 'blur(8px) grayscale(100%)';
+  };
+
+  if (!gameStarted) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <h2>Choisissez la difficulté pour commencer</h2>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="difficulty" style={{ marginRight: '0.5rem' }}>Difficulté :</label>
+          <select
+            id="difficulty"
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            style={{ padding: '0.3rem' }}
+          >
+            <option value="débutant">Débutant (sans flou, couleurs)</option>
+            <option value="facile">Facile (couleur, un peu flou)</option>
+            <option value="moyen">Moyen (pas de couleur, un peu flou)</option>
+            <option value="difficile">Difficile (flou, sans couleur)</option>
+            <option value="expert">Expert (très flou, sans couleur)</option>
+          </select>
+        </div>
+        <button onClick={() => setGameStarted(true)} style={{ padding: '0.5rem 1rem' }}>
+          Démarrer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
       <h2>Devine le Pokémon !</h2>
+      <div style={{ marginBottom: '1rem' }}>
+        <strong>Difficulté : </strong>{difficulty}
+      </div>
       {pokemon && (
         <div style={{ margin: '1rem' }}>
           <img
@@ -81,7 +115,7 @@ const PhotoQuiz: React.FC = () => {
             alt={pokemon.nameEn}
             style={{
               width: '200px',
-              filter: isRevealed ? 'none' : 'blur(8px) grayscale(100%)',
+              filter: getFilterStyle(),
               transition: 'filter 0.3s ease'
             }}
           />
@@ -92,7 +126,7 @@ const PhotoQuiz: React.FC = () => {
           type="text"
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
-          placeholder="Entrez le nom du Pokémon"
+          placeholder="Entrez le nom du Pokémon (FR ou EN)"
           style={{ padding: '0.5rem' }}
           disabled={isRevealed}
         />
