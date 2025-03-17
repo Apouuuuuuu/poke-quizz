@@ -67,7 +67,7 @@ const PhotoQuiz: React.FC = () => {
     if (!pokemon) return;
     setPoints(Math.max(points - 2, 0));
     setStreak(0);
-    setFeedback(`Dommage, la réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}.`);
+    setFeedback(`Dommage, la réponse était : ${pokemon.nameFr}.`);
     setIsRevealed(true);
   };
 
@@ -92,7 +92,7 @@ const PhotoQuiz: React.FC = () => {
           type="text"
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
-          placeholder="Entrez le nom du Pokémon (FR ou EN)"
+          placeholder="Entrez le nom du Pokémon"
           style={{ padding: '0.5rem' }}
           disabled={isRevealed}
         />
