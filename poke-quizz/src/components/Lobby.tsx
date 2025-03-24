@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface LobbyProps {
-  setMode: (mode: 'lobby' | 'photo' | 'sound' | 'chrono' | 'stat') => void;
+  setMode: (mode: 'lobby' | 'photo' | 'sound' | 'stat') => void;
 }
 
 const Lobby: React.FC<LobbyProps> = ({ setMode }) => {
@@ -14,9 +14,6 @@ const Lobby: React.FC<LobbyProps> = ({ setMode }) => {
       </button>
       <button onClick={() => setMode('sound')} style={{ margin: '0.5rem', padding: '0.5rem 1rem' }}>
         Mode Sonore (Audio)
-      </button>
-      <button onClick={() => setMode('chrono')} style={{ margin: '0.5rem', padding: '0.5rem 1rem' }}>
-        Mode Chrono
       </button>
       <button onClick={() => setMode('stat')} style={{ margin: '0.5rem', padding: '0.5rem 1rem' }}>
         Mode Stat Quiz
