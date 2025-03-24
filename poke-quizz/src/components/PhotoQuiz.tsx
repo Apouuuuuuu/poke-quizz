@@ -29,7 +29,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
       setFeedback('');
       setIsRevealed(false);
       setGuess('');
-      const totalPokemon = 3; // Remplace par le nombre total voulu
+      const totalPokemon = 3; 
       const randomId = Math.floor(Math.random() * totalPokemon) + 1;
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
