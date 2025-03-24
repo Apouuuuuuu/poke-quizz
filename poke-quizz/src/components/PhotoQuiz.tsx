@@ -24,6 +24,15 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const formatTime = (seconds: number): string => {
+    if (seconds >= 60) {
+      const minutes = Math.floor(seconds / 60);
+      const remaining = seconds % 60;
+      return remaining === 0 ? `${minutes} minute(s)` : `${minutes} minute(s) ${remaining} second(s)`;
+    }
+    return `${seconds} second(s)`;
+  };
+
   useEffect(() => {
     if (gameStarted && enableTimer && timeLeft > 0) {
       timerRef.current = setInterval(() => {
@@ -46,7 +55,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
       setFeedback('');
       setIsRevealed(false);
       setGuess('');
-      const totalPokemon = 3;
+      const totalPokemon = 151;
       const randomId = Math.floor(Math.random() * totalPokemon) + 1;
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
@@ -87,7 +96,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints(Math.max(points - 1, 0));
-    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 points)`);
+    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 point)`);
     setIsRevealed(true);
   };
 
@@ -176,7 +185,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
         Retour à l'accueil
       </button>
       <h2>Devine le Pokémon !</h2>
-      {enableTimer && <p>Temps restant : {timeLeft} secondes</p>}
+      {enableTimer && <p>Temps restant : {formatTime(timeLeft)}</p>}
       <p>Points : {points} | Streak : {streak}</p>
       {pokemon && (
         <div style={{ margin: '1rem' }}>
@@ -203,15 +212,15 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
       <p>{feedback}</p>
       {!isRevealed && enableTimer && timeLeft > 0 && (
         <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-          Donner la réponse (-1 points)
+          Donner la réponse (-1 point)
         </button>
       )}
       {!isRevealed && !enableTimer && (
         <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-          Donner la réponse (-1 points)
+          Donner la réponse (-1 point)
         </button>
       )}
-      {isRevealed && ( !enableTimer || (enableTimer && timeLeft > 0)) && (
+      {isRevealed && ((!enableTimer) || (enableTimer && timeLeft > 0)) && (
         <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
           Pokémon Suivant
         </button>
