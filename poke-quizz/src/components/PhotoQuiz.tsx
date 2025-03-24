@@ -66,6 +66,14 @@ const PhotoQuiz: React.FC = () => {
     setIsRevealed(true);
   };
 
+  const handleReturnHome = () => {
+    setGameStarted(false);
+    setPoints(0);
+    setStreak(0);
+    setFeedback('');
+    setGuess('');
+  };
+
   const getFilterStyle = () => {
     if (isRevealed) return 'none';
     if (difficulty === 'débutant') return 'none';
@@ -103,7 +111,18 @@ const PhotoQuiz: React.FC = () => {
   }
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+    <div style={{ textAlign: 'center', marginTop: '2rem', position: 'relative' }}>
+      <button
+        onClick={handleReturnHome}
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          left: '1rem',
+          padding: '0.5rem 1rem'
+        }}
+      >
+        Retour à l'accueil
+      </button>
       <h2>Devine le Pokémon !</h2>
       <div style={{ marginBottom: '1rem' }}>
         <strong>Difficulté : </strong>{difficulty}
@@ -141,7 +160,11 @@ const PhotoQuiz: React.FC = () => {
           Donner la réponse
         </button>
       )}
-      <button onClick={fetchRandomPokemon} style={{ padding: '0.5rem 1rem' }} disabled={!isRevealed}>
+      <button
+        onClick={fetchRandomPokemon}
+        style={{ padding: '0.5rem 1rem' }}
+        disabled={!isRevealed}
+      >
         Pokémon Suivant
       </button>
     </div>
