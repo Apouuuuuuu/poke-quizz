@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Lobby from './components/Lobby';
 import PhotoQuiz from './components/PhotoQuiz';
-import './App.css'; 
+import SoundQuiz from './components/SoundQuiz';
 
-function App() {
+const App: React.FC = () => {
+  const [mode, setMode] = useState<'lobby' | 'photo' | 'sound'>('lobby');
+
   return (
-    <div className="App">
-      <PhotoQuiz />
+    <div>
+      {mode === 'lobby' && <Lobby setMode={setMode} />}
+      {mode === 'photo' && <PhotoQuiz onReturn={() => setMode('lobby')} />}
+      {mode === 'sound' && <SoundQuiz onReturn={() => setMode('lobby')} />}
     </div>
   );
-}
+};
 
 export default App;
