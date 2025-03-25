@@ -21,7 +21,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
   const [correctCount, setCorrectCount] = useState<number>(0);
 
   const generationRanges: { [gen: number]: [number, number] } = {
-    1: [1, 151],
+    1: [1, 1],
     2: [152, 251],
     3: [252, 386],
     4: [387, 493],
@@ -29,6 +29,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
     6: [650, 721],
     7: [722, 809],
     8: [810, 898],
+    9: [899, 1010],
   };
 
   const fetchRandomPokemon = async () => {
@@ -135,7 +136,16 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
       </button>
       <h2>Mode Stat Quiz</h2>
       <p>Points : {points} | Pokémon trouvés : {correctCount}</p>
-      {clues.length > 0 && <p>Indice : {clues[clueIndex]}</p>}
+      {clues.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <h3>Indices révélés :</h3>
+          <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {clues.slice(0, clueIndex + 1).map((clue, index) => (
+              <li key={index}>{clue}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
         <input
           type="text"
@@ -151,17 +161,17 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
       </form>
       <p>{feedback}</p>
       {!isRevealed && (
-        <button
-          onClick={() => setClueIndex(Math.min(clueIndex + 1, clues.length - 1))}
-          style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}
-        >
-          Obtenir un indice supplémentaire
-        </button>
-      )}
-      {!isRevealed && (
-        <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-          Donner la réponse (-3 points)
-        </button>
+        <>
+          <button
+            onClick={() => setClueIndex(Math.min(clueIndex + 1, clues.length - 1))}
+            style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}
+          >
+            Obtenir un indice supplémentaire
+          </button>
+          <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
+            Donner la réponse (-3 points)
+          </button>
+        </>
       )}
       {isRevealed && (
         <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
