@@ -39,6 +39,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     6: [650, 721],
     7: [722, 809],
     8: [810, 898],
+    9: [899, 1010],
   };
 
   const formatTime = (seconds: number): string => {

@@ -14,7 +14,7 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
   const [selectedTime, setSelectedTime] = useState<number>(60);
   const [selectedGenerations, setSelectedGenerations] = useState<number[]>([1]);
 
-  const generationOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  const generationOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   const handleGenerationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const gen = Number(e.target.value);
