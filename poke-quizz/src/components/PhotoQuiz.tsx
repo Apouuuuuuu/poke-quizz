@@ -116,7 +116,6 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       setFeedback('Bravo, bonne réponse !');
       setIsRevealed(true);
     } else {
-      setPoints(Math.max(points - 1, 0));
       setStreak(0);
       setFeedback('Mauvaise réponse, réessaie !');
     }
@@ -125,6 +124,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints(Math.max(points - 1, 0));
+    setStreak(0);
     setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 point)`);
     setIsRevealed(true);
   };
