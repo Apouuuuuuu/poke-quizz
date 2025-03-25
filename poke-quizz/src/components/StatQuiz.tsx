@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PokemonData {
   nameEn: string;
@@ -7,51 +7,50 @@ interface PokemonData {
 
 interface StatQuizProps {
   onReturn: () => void;
+  selectedGenerations: number[];
 }
 
-const StatQuiz: React.FC<StatQuizProps> = ({ onReturn }) => {
+const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) => {
   const [pokemon, setPokemon] = useState<PokemonData | null>(null);
   const [clues, setClues] = useState<string[]>([]);
-  const [clueCount, setClueCount] = useState<number>(1);
+  const [clueIndex, setClueIndex] = useState<number>(0);
   const [guess, setGuess] = useState<string>('');
   const [feedback, setFeedback] = useState<string>('');
   const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const [points, setPoints] = useState<number>(0);
-  const [selectedTime, setSelectedTime] = useState<number>(60);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [correctCount, setCorrectCount] = useState<number>(0);
 
-  useEffect(() => {
-    if (gameStarted && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
-    }
-  }, [gameStarted, timeLeft]);
-
-  useEffect(() => {
-    if (gameStarted && timeLeft === 0) {
-      setFeedback(`Temps écoulé ! Vous avez accumulé ${points} points.`);
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-  }, [timeLeft, gameStarted, points]);
+  const generationRanges: { [gen: number]: [number, number] } = {
+    1: [1, 151],
+    2: [152, 251],
+    3: [252, 386],
+    4: [387, 493],
+    5: [494, 649],
+    6: [650, 721],
+    7: [722, 809],
+    8: [810, 898],
+  };
 
   const fetchRandomPokemon = async () => {
     try {
       setFeedback('');
       setIsRevealed(false);
       setGuess('');
-      setClueCount(1);
-      const totalPokemon = 3; 
-      const randomId = Math.floor(Math.random() * totalPokemon) + 1;
+      setClueIndex(0);
+      let randomId = 0;
+      if (selectedGenerations.length === 0) {
+        randomId = Math.floor(Math.random() * 151) + 1;
+      } else {
+        const randomGen =
+          selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
+        const [min, max] = generationRanges[randomGen];
+        randomId = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
+
       const newClues: string[] = [];
       const hp = data.stats.find((s: any) => s.stat.name === 'hp')?.base_stat;
       if (hp !== undefined) newClues.push(`HP: ${hp}`);
@@ -83,8 +82,10 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn }) => {
         newClues.push(`Couleur: inconnu`);
       }
       setClues(newClues);
-      const nameEn = speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
-      const nameFr = speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
+      const nameEn =
+        speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
+      const nameFr =
+        speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
       setPokemon({ nameEn, nameFr });
     } catch (error) {
       console.error(error);
@@ -93,77 +94,36 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn }) => {
   };
 
   useEffect(() => {
-    if (gameStarted) fetchRandomPokemon();
-  }, [gameStarted]);
+    fetchRandomPokemon();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isRevealed || !pokemon || timeLeft === 0) return;
+    if (isRevealed || !pokemon) return;
     const userGuess = guess.trim().toLowerCase();
     const correctAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (correctAnswers.includes(userGuess)) {
-      const additionalCluesUsed = clueCount - 1;
+      const additionalCluesUsed = clueIndex;
       const earnedPoints = Math.max(10 - additionalCluesUsed, 1);
       setPoints(points + earnedPoints);
-      setFeedback(`Bravo, bonne réponse ! Vous gagnez ${earnedPoints} points.`);
+      setFeedback(`Bravo, bonne réponse ! (+${earnedPoints} points)`);
       setIsRevealed(true);
+      setCorrectCount(correctCount + 1);
     } else {
       setFeedback('Mauvaise réponse, réessaie !');
     }
   };
 
   const handleGiveUp = () => {
-    if (!pokemon || timeLeft === 0) return;
+    if (!pokemon) return;
     setPoints(Math.max(points - 3, 0));
     setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-3 points)`);
     setIsRevealed(true);
   };
 
   const handleNext = () => {
-    if (timeLeft === 0) return;
     fetchRandomPokemon();
   };
-
-  const revealAdditionalClue = () => {
-    if (clueCount < clues.length) {
-      setClueCount(clueCount + 1);
-    }
-  };
-
-  if (!gameStarted) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <h2>Mode Stat Quiz avec Chrono</h2>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="time" style={{ marginRight: '0.5rem' }}>Temps de jeu :</label>
-          <select
-            id="time"
-            value={selectedTime}
-            onChange={(e) => setSelectedTime(Number(e.target.value))}
-            style={{ padding: '0.3rem' }}
-          >
-            <option value={60}>1 minute</option>
-            <option value={300}>5 minutes</option>
-            <option value={900}>15 minutes</option>
-            <option value={1800}>30 minutes</option>
-            <option value={3600}>1 heure</option>
-          </select>
-        </div>
-        <button
-          onClick={() => {
-            setGameStarted(true);
-            setTimeLeft(selectedTime);
-          }}
-          style={{ padding: '0.5rem 1rem' }}
-        >
-          Démarrer
-        </button>
-        <button onClick={onReturn} style={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}>
-          Retour à l'accueil
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div style={{ textAlign: 'center', marginTop: '2rem', position: 'relative' }}>
@@ -173,44 +133,37 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn }) => {
       >
         Retour à l'accueil
       </button>
-      <h2>Mode Stat Quiz avec Chrono</h2>
-      <p>Temps restant : {timeLeft} secondes</p>
-      <p>Points : {points}</p>
-      <div style={{ marginBottom: '1rem' }}>
-        <strong>Indices révélés :</strong>
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
-          {clues.slice(0, clueCount).map((clue, index) => (
-            <li key={index}>{clue}</li>
-          ))}
-        </ul>
-      </div>
-      {!isRevealed && timeLeft > 0 && clueCount < clues.length && (
-        <button onClick={revealAdditionalClue} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
+      <h2>Mode Stat Quiz</h2>
+      <p>Points : {points} | Pokémon trouvés : {correctCount}</p>
+      {clues.length > 0 && <p>Indice : {clues[clueIndex]}</p>}
+      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          value={guess}
+          onChange={(e) => setGuess(e.target.value)}
+          placeholder="Entrez le nom du Pokémon (FR ou EN)"
+          style={{ padding: '0.5rem' }}
+          disabled={isRevealed}
+        />
+        <button type="submit" style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }} disabled={isRevealed}>
+          Valider
+        </button>
+      </form>
+      <p>{feedback}</p>
+      {!isRevealed && (
+        <button
+          onClick={() => setClueIndex(Math.min(clueIndex + 1, clues.length - 1))}
+          style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}
+        >
           Obtenir un indice supplémentaire
         </button>
       )}
-      {timeLeft > 0 && (
-        <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-          <input
-            type="text"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="Entrez le nom du Pokémon (FR ou EN)"
-            style={{ padding: '0.5rem' }}
-            disabled={isRevealed}
-          />
-          <button type="submit" style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }} disabled={isRevealed}>
-            Valider
-          </button>
-        </form>
-      )}
-      <p>{feedback}</p>
-      {!isRevealed && timeLeft > 0 && (
+      {!isRevealed && (
         <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
           Donner la réponse (-3 points)
         </button>
       )}
-      {isRevealed && timeLeft > 0 && (
+      {isRevealed && (
         <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
           Pokémon Suivant
         </button>

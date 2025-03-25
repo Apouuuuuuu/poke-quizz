@@ -8,27 +8,46 @@ interface PokemonData {
 
 interface PhotoQuizProps {
   onReturn: () => void;
+  enableTimer: boolean;
+  selectedTime: number;
+  selectedGenerations: number[];
 }
 
-const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
+const PhotoQuiz: React.FC<PhotoQuizProps> = ({
+  onReturn,
+  enableTimer,
+  selectedTime,
+  selectedGenerations,
+}) => {
+  const [localDifficulty, setLocalDifficulty] = useState<string>('');
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [pokemon, setPokemon] = useState<PokemonData | null>(null);
   const [guess, setGuess] = useState('');
   const [feedback, setFeedback] = useState('');
   const [isRevealed, setIsRevealed] = useState(false);
   const [points, setPoints] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
-  const [difficulty, setDifficulty] = useState<string>('débutant');
-  const [enableTimer, setEnableTimer] = useState<boolean>(false);
-  const [selectedTime, setSelectedTime] = useState<number>(60);
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const generationRanges: { [gen: number]: [number, number] } = {
+    1: [1, 151],
+    2: [152, 251],
+    3: [252, 386],
+    4: [387, 493],
+    5: [494, 649],
+    6: [650, 721],
+    7: [722, 809],
+    8: [810, 898],
+  };
 
   const formatTime = (seconds: number): string => {
     if (seconds >= 60) {
       const minutes = Math.floor(seconds / 60);
       const remaining = seconds % 60;
-      return remaining === 0 ? `${minutes} minute(s)` : `${minutes} minute(s) ${remaining} second(s)`;
+      return remaining === 0
+        ? `${minutes} minute(s)`
+        : `${minutes} minute(s) ${remaining} second(s)`;
     }
     return `${seconds} second(s)`;
   };
@@ -46,7 +65,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
 
   useEffect(() => {
     if (gameStarted && enableTimer && timeLeft === 0) {
-      setFeedback(`Temps écoulé !`);
+      setFeedback('Temps écoulé !');
     }
   }, [timeLeft, gameStarted, enableTimer]);
 
@@ -55,8 +74,15 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
       setFeedback('');
       setIsRevealed(false);
       setGuess('');
-      const totalPokemon = 151;
-      const randomId = Math.floor(Math.random() * totalPokemon) + 1;
+      let randomId = 0;
+      if (selectedGenerations.length === 0) {
+        randomId = Math.floor(Math.random() * 151) + 1;
+      } else {
+        const randomGen =
+          selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
+        const [min, max] = generationRanges[randomGen];
+        randomId = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
@@ -64,7 +90,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
       setPokemon({
         nameEn: speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name,
         nameFr: speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name,
-        sprite: data.sprites.front_default
+        sprite: data.sprites.front_default,
       });
     } catch (error) {
       console.error(error);
@@ -73,7 +99,10 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
   };
 
   useEffect(() => {
-    if (gameStarted) fetchRandomPokemon();
+    if (gameStarted) {
+      fetchRandomPokemon();
+      if (enableTimer) setTimeLeft(selectedTime);
+    }
   }, [gameStarted]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,67 +136,34 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
 
   const getFilterStyle = () => {
     if (isRevealed) return 'none';
-    if (difficulty === 'débutant') return 'none';
-    if (difficulty === 'facile') return 'blur(4px)';
-    if (difficulty === 'moyen') return 'blur(8px)';
-    if (difficulty === 'difficile') return 'blur(12px) grayscale(100%)';
-    if (difficulty === 'expert') return 'blur(16px) grayscale(100%)';
+    if (localDifficulty === 'débutant') return 'none';
+    if (localDifficulty === 'facile') return 'blur(4px)';
+    if (localDifficulty === 'moyen') return 'blur(8px)';
+    if (localDifficulty === 'difficile') return 'blur(12px) grayscale(100%)';
+    if (localDifficulty === 'expert') return 'blur(16px) grayscale(100%)';
     return 'blur(8px)';
   };
 
-  if (!gameStarted) {
+  if (!gameStarted || localDifficulty === '') {
     return (
       <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <h2>Choisissez vos options pour commencer</h2>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="difficulty" style={{ marginRight: '0.5rem' }}>Difficulté :</label>
-          <select
-            id="difficulty"
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-            style={{ padding: '0.3rem' }}
-          >
-            <option value="débutant">Débutant (sans flou)</option>
-            <option value="facile">Facile (un peu flou)</option>
-            <option value="moyen">Moyen (flou modéré)</option>
-            <option value="difficile">Difficile (très flou, sans couleur)</option>
-            <option value="expert">Expert (extrêmement flou, sans couleur)</option>
-          </select>
-        </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="enableTimer" style={{ marginRight: '0.5rem' }}>Activer le chrono :</label>
-          <input
-            id="enableTimer"
-            type="checkbox"
-            checked={enableTimer}
-            onChange={(e) => setEnableTimer(e.target.checked)}
-          />
-        </div>
-        {enableTimer && (
-          <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="time" style={{ marginRight: '0.5rem' }}>Temps de jeu :</label>
-            <select
-              id="time"
-              value={selectedTime}
-              onChange={(e) => setSelectedTime(Number(e.target.value))}
-              style={{ padding: '0.3rem' }}
-            >
-              <option value={60}>1 minute</option>
-              <option value={300}>5 minutes</option>
-              <option value={900}>15 minutes</option>
-              <option value={1800}>30 minutes</option>
-              <option value={3600}>1 heure</option>
-            </select>
-          </div>
-        )}
-        <button
-          onClick={() => {
-            setGameStarted(true);
-            if (enableTimer) setTimeLeft(selectedTime);
-          }}
-          style={{ padding: '0.5rem 1rem' }}
+        <h2>PhotoQuiz - Configuration</h2>
+        <p>Choisissez la difficulté :</p>
+        <select
+          value={localDifficulty}
+          onChange={(e) => setLocalDifficulty(e.target.value)}
+          style={{ padding: '0.3rem', marginBottom: '1rem' }}
         >
-          Démarrer
+          <option value="">-- Sélectionnez --</option>
+          <option value="débutant">Débutant (sans flou)</option>
+          <option value="facile">Facile (un peu flou)</option>
+          <option value="moyen">Moyen (flou modéré)</option>
+          <option value="difficile">Difficile (très flou, sans couleur)</option>
+          <option value="expert">Expert (extrêmement flou, sans couleur)</option>
+        </select>
+        <br />
+        <button onClick={() => setGameStarted(true)} style={{ padding: '0.5rem 1rem' }}>
+          Commencer le PhotoQuiz
         </button>
         <button onClick={onReturn} style={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}>
           Retour à l'accueil
@@ -205,17 +201,16 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({ onReturn }) => {
           style={{ padding: '0.5rem' }}
           disabled={isRevealed || (enableTimer && timeLeft === 0)}
         />
-        <button type="submit" style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }} disabled={isRevealed || (enableTimer && timeLeft === 0)}>
+        <button
+          type="submit"
+          style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }}
+          disabled={isRevealed || (enableTimer && timeLeft === 0)}
+        >
           Valider
         </button>
       </form>
       <p>{feedback}</p>
-      {!isRevealed && enableTimer && timeLeft > 0 && (
-        <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-          Donner la réponse (-1 point)
-        </button>
-      )}
-      {!isRevealed && !enableTimer && (
+      {!isRevealed && (enableTimer && timeLeft > 0 || !enableTimer) && (
         <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
           Donner la réponse (-1 point)
         </button>
