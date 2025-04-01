@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Lobby from './components/Lobby';
 import PhotoQuiz from './components/PhotoQuiz';
 import SoundQuiz from './components/SoundQuiz';
 import StatQuiz from './components/StatQuiz';
 import './App.css';
-
 
 type Mode = 'lobby' | 'photo' | 'sound' | 'stat';
 
@@ -22,8 +21,28 @@ const App: React.FC = () => {
     selectedGenerations: [1],
   });
 
+  const backgrounds = [
+    '/images/background/articodin.jpg',
+    '/images/background/caninos.jpg',
+    '/images/background/darkrai.jpg',
+    '/images/background/fantominus.jpg',
+    '/images/background/lugia.jpg',
+    '/images/background/noctali.jpg',
+    '/images/background/plante.jpg',
+    '/images/background/spectrum.jpg',
+    '/images/background/tenebre.jpg',
+
+  ];
+
+  const randomBg = useMemo(() => {
+    return backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  }, []);
+
   return (
-    <div>
+    <div
+      className="min-h-screen w-full bg-cover bg-center"
+      style={{ backgroundImage: `url(${randomBg})` }}
+    >
       {mode === 'lobby' && (
         <Lobby setMode={setMode} setGameOptions={setGameOptions} />
       )}
