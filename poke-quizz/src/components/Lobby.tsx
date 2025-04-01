@@ -30,17 +30,19 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
-         style={{ backgroundImage: "url('/images/background/psyduck.jpg')" }}>
-      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+    <div
+      className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/images/background/psyduck.jpg')" }}
+    >
+      <div className="bg-white/80 p-4 rounded-lg shadow-lg max-w-md w-full text-center">
         <img
           src="/images/PokeQuizLogo.png"
           alt="PokeQuiz Logo"
-          className="mx-auto mb-4 hover:scale-110 transition-transform duration-300"
+          className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
         />
 
         <div className="mb-6 flex items-center justify-center">
-          <span className="mr-4 text-lg text-gray-700">Activer le chrono :</span>
+          <span className="mr-2 text-lg text-gray-700">Activer le chrono</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -48,18 +50,18 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
               checked={enableTimer}
               onChange={(e) => setEnableTimer(e.target.checked)}
             />
-            <div className="peer ring-0 bg-rose-400 rounded-full outline-none duration-300 after:duration-500 w-12 h-12 shadow-md peer-checked:bg-emerald-500 peer-focus:outline-none after:content-['✖️'] after:rounded-full after:absolute after:outline-none after:h-10 after:w-10 after:bg-gray-50 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-hover:after:scale-75 peer-checked:after:content-['✔️'] after:-rotate-180 peer-checked:after:rotate-0"></div>
+            <div className="peer ring-0 bg-rose-400 rounded-full outline-none duration-300 after:duration-500 w-10 h-10 shadow-md peer-checked:bg-emerald-500 peer-focus:outline-none after:content-['✖️'] after:rounded-full after:absolute after:outline-none after:h-8 after:w-8 after:bg-gray-50 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-hover:after:scale-75 peer-checked:after:content-['✔️'] after:-rotate-180 peer-checked:after:rotate-0"></div>
           </label>
         </div>
 
         {enableTimer && (
-          <div className="mb-6">
-            <label className="text-lg text-gray-700">
+          <div className="mb-4">
+            <label className="text-gray-700">
               Temps de jeu :
               <select
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(Number(e.target.value))}
-                className="ml-2 p-2 border-2 border-blue-800 rounded"
+                className="ml-1 p-1 border-2 border-blue-800 rounded"
               >
                 <option value={60}>1 minute</option>
                 <option value={300}>5 minutes</option>
@@ -69,6 +71,7 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
               </select>
             </label>
           </div>
+
         )}
 
         {/* Générations */}
@@ -79,9 +82,8 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
               <button
                 key={gen}
                 onClick={() => handleGenerationChange(gen)}
-                className={`px-4 py-2 border-2 border-blue-800 rounded text-sm font-bold transition-transform duration-300 hover:scale-105 ${
-                  selectedGenerations.includes(gen) ? 'bg-yellow-400' : 'bg-gray-200'
-                }`}
+                className={`px-4 py-2 border-2 border-blue-800 rounded text-sm font-bold transition-transform duration-300 hover:scale-105 ${selectedGenerations.includes(gen) ? 'bg-yellow-400' : 'bg-gray-200'
+                  }`}
               >
                 Gen {gen}
               </button>
@@ -89,15 +91,42 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
           </div>
         </div>
 
+        {/* Boutons des modes de jeu avec description à l'intérieur */}
         <div className="flex flex-col space-y-4">
-          <button onClick={() => handleStart('photo')} className="button">
-            PhotoQuiz
+          <button
+            onClick={() => handleStart('photo')}
+            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+          >
+            <div className="flex flex-col">
+              <span>PhotoQuiz</span>
+              <span className="text-xs font-normal">
+                Devine le Pokémon à partir d'une image
+              </span>
+            </div>
           </button>
-          <button onClick={() => handleStart('sound')} className="button">
-            SoundQuiz
+
+          <button
+            onClick={() => handleStart('sound')}
+            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+          >
+            <div className="flex flex-col">
+              <span>SoundQuiz</span>
+              <span className="text-xs font-normal">
+                Devine le Pokémon à partir de son cri
+              </span>
+            </div>
           </button>
-          <button onClick={() => handleStart('stat')} className="button">
-            StatQuiz
+
+          <button
+            onClick={() => handleStart('stat')}
+            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+          >
+            <div className="flex flex-col">
+              <span>StatQuiz</span>
+              <span className="text-xs font-normal">
+                Devine le Pokémon à partir de ses statistiques
+              </span>
+            </div>
           </button>
         </div>
       </div>
