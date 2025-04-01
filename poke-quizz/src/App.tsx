@@ -3,6 +3,8 @@ import Lobby from './components/Lobby';
 import PhotoQuiz from './components/PhotoQuiz';
 import SoundQuiz from './components/SoundQuiz';
 import StatQuiz from './components/StatQuiz';
+import './App.css';
+
 
 type Mode = 'lobby' | 'photo' | 'sound' | 'stat';
 
