@@ -140,87 +140,115 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     if (localDifficulty === 'débutant') return 'none';
     if (localDifficulty === 'facile') return 'blur(4px)';
     if (localDifficulty === 'moyen') return 'blur(8px)';
-    if (localDifficulty === 'difficile') return 'blur(12px) grayscale(100%)';
-    if (localDifficulty === 'expert') return 'blur(16px) grayscale(100%)';
+    if (localDifficulty === 'difficile') return 'blur(10px) grayscale(100%)';
+    if (localDifficulty === 'expert') return 'blur(12px) grayscale(100%)';
     return 'blur(8px)';
   };
 
   if (!gameStarted || localDifficulty === '') {
     return (
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <h2>PhotoQuiz - Configuration</h2>
-        <p>Choisissez la difficulté :</p>
-        <select
-          value={localDifficulty}
-          onChange={(e) => setLocalDifficulty(e.target.value)}
-          style={{ padding: '0.3rem', marginBottom: '1rem' }}
+      <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
+           style={{ backgroundImage: "url('/images/background/psyduck.jpg')" }}>
+        <button
+          onClick={onReturn}
+          className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
         >
-          <option value="">-- Sélectionnez --</option>
-          <option value="débutant">Débutant (sans flou)</option>
-          <option value="facile">Facile (un peu flou)</option>
-          <option value="moyen">Moyen (flou modéré)</option>
-          <option value="difficile">Difficile (très flou, sans couleur)</option>
-          <option value="expert">Expert (extrêmement flou, sans couleur)</option>
-        </select>
-        <br />
-        <button onClick={() => setGameStarted(true)} style={{ padding: '0.5rem 1rem' }}>
-          Commencer le PhotoQuiz
-        </button>
-        <button onClick={onReturn} style={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}>
           Retour à l'accueil
         </button>
+        <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <img
+            src="/images/PokeQuizLogo.png"
+            alt="PokeQuiz Logo"
+            className="mx-auto mb-4 w-1/3 hover:scale-110 transition-transform duration-300"
+          />
+          <h2 className="text-xl font-bold mb-4">PhotoQuiz</h2>
+          <span className="text-xs font-normal mb-4 block">
+            Devine le Pokémon à partir d'une image floue
+          </span>
+          <p className="mb-4">Choisissez la difficulté :</p>
+          <select
+            value={localDifficulty}
+            onChange={(e) => setLocalDifficulty(e.target.value)}
+            className="p-2 border-2 border-blue-800 rounded mb-4"
+          >
+            <option value="">-- Sélectionnez --</option>
+            <option value="débutant">Débutant (sans flou)</option>
+            <option value="facile">Facile (un peu flou)</option>
+            <option value="moyen">Moyen (flou modéré)</option>
+            <option value="difficile">Difficile (très flou, sans couleur)</option>
+            <option value="expert">Expert (extrêmement flou, sans couleur)</option>
+          </select>
+          <br />
+          <button
+            onClick={() => setGameStarted(true)}
+            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg mb-4"
+          >
+            Commencer le PhotoQuiz
+          </button>
+
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem', position: 'relative' }}>
+    <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
+         style={{ backgroundImage: "url('/images/background/psyduck.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <button
         onClick={onReturn}
-        style={{ position: 'absolute', top: '1rem', left: '1rem', padding: '0.5rem 1rem' }}
+        className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
       >
         Retour à l'accueil
       </button>
-      <h2>Devine le Pokémon !</h2>
-      {enableTimer && <p>Temps restant : {formatTime(timeLeft)}</p>}
-      <p>Points : {points} | Streak : {streak}</p>
-      {pokemon && (
-        <div style={{ margin: '1rem' }}>
-          <img
-            src={pokemon.sprite}
-            alt={pokemon.nameEn}
-            style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
+      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <h2 className="text-2xl font-bold mb-2">Devine le Pokémon !</h2>
+        {enableTimer && <p className="mb-2">{formatTime(timeLeft)}</p>}
+        <p className="mb-4">Points : {points} | Streak : {streak}</p>
+        {pokemon && (
+          <div className="mb-4">
+            <img
+              src={pokemon.sprite}
+              alt={pokemon.nameEn}
+              className="mx-auto"
+              style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
+            />
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="mb-4">
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder="Entrez le nom du Pokémon (FR ou EN)"
+            className="p-2 border-2 border-blue-800 rounded"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
           />
-        </div>
-      )}
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          placeholder="Entrez le nom du Pokémon (FR ou EN)"
-          style={{ padding: '0.5rem' }}
-          disabled={isRevealed || (enableTimer && timeLeft === 0)}
-        />
-        <button
-          type="submit"
-          style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }}
-          disabled={isRevealed || (enableTimer && timeLeft === 0)}
-        >
-          Valider
-        </button>
-      </form>
-      <p>{feedback}</p>
-      {!isRevealed && (enableTimer && timeLeft > 0 || !enableTimer) && (
-        <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-          Donner la réponse (-1 point)
-        </button>
-      )}
-      {isRevealed && ((!enableTimer) || (enableTimer && timeLeft > 0)) && (
-        <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
-          Pokémon Suivant
-        </button>
-      )}
+          <button
+            type="submit"
+            className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
+          >
+            Valider
+          </button>
+        </form>
+        <p className="mb-4">{feedback}</p>
+        {!isRevealed && (enableTimer && timeLeft > 0 || !enableTimer) && (
+          <button
+            onClick={handleGiveUp}
+            className="mb-4 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+          >
+            Donner la réponse (-1 point)
+          </button>
+        )}
+        {isRevealed && ((!enableTimer) || (enableTimer && timeLeft > 0)) && (
+          <button
+            onClick={handleNext}
+            className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+          >
+            Pokémon Suivant
+          </button>
+        )}
+      </div>
     </div>
   );
 };
