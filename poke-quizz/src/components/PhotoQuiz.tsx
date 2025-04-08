@@ -147,8 +147,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
 
   if (!gameStarted || localDifficulty === '') {
     return (
-      <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
-           style={{ backgroundImage: "url('/images/background/psyduck.jpg')" }}>
+      <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center">
         <button
           onClick={onReturn}
           className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
@@ -159,12 +158,9 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
           <img
             src="/images/PokeQuizLogo.png"
             alt="PokeQuiz Logo"
-            className="mx-auto mb-4 w-1/3 hover:scale-110 transition-transform duration-300"
+            className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
           />
-          <h2 className="text-xl font-bold mb-4">PhotoQuiz</h2>
-          <span className="text-xs font-normal mb-4 block">
-            Devine le Pokémon à partir d'une image floue
-          </span>
+          <h2 className="text-xl font-bold mb-4">Devine le Pokémon !</h2>
           <p className="mb-4">Choisissez la difficulté :</p>
           <select
             value={localDifficulty}
@@ -192,8 +188,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
-         style={{ backgroundImage: "url('/images/background/psyduck.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center">
       <button
         onClick={onReturn}
         className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
@@ -219,7 +214,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
             type="text"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
-            placeholder="Entrez le nom du Pokémon (FR ou EN)"
+            placeholder="Entrez le nom du Pokémon"
             className="p-2 border-2 border-blue-800 rounded"
             disabled={isRevealed || (enableTimer && timeLeft === 0)}
           />

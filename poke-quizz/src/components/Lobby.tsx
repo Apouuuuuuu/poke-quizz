@@ -32,7 +32,6 @@ const Lobby: React.FC<LobbyProps> = ({ setMode, setGameOptions }) => {
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
-      style={{ backgroundImage: "url('/images/background/psyduck.jpg')" }}
     >
       <div className="bg-white/80 p-4 rounded-lg shadow-lg max-w-md w-full text-center">
         <img

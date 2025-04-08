@@ -36,13 +36,13 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     6: [650, 721],
     7: [722, 809],
     8: [810, 898],
+    9: [899, 1010],
   };
 
-  // Timer
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     if (enableTimer && timeLeft > 0) {
-      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     }
     return () => {
       if (timer) clearInterval(timer);
@@ -51,7 +51,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
 
   useEffect(() => {
     if (enableTimer && timeLeft === 0) {
-      setFeedback("Temps écoulé !");
+      setFeedback('Temps écoulé !');
     }
   }, [timeLeft, enableTimer]);
 
@@ -81,7 +81,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
       setPokemon({ nameEn, nameFr });
     } catch (error) {
       console.error(error);
-      setFeedback("Impossible de charger un Pokémon. Réessaie plus tard.");
+      setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
   };
 
@@ -99,11 +99,11 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     if (possibleAnswers.includes(userGuess)) {
       setPoints(points + 1);
       setStreak(streak + 1);
-      setFeedback("Bravo, bonne réponse !");
+      setFeedback('Bravo, bonne réponse !');
       setIsRevealed(true);
     } else {
       setStreak(0);
-      setFeedback("Mauvaise réponse, réessaie !");
+      setFeedback('Mauvaise réponse, réessaie !');
     }
   };
 
@@ -111,7 +111,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints(Math.max(points - 1, 0));
     setStreak(0);
-    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 point)`);
+    setFeedback(`La réponse était : ${pokemon?.nameFr}. (-1 point)`);
     setIsRevealed(true);
   };
 
@@ -121,48 +121,66 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem', position: 'relative' }}>
+    <div className="relative min-h-screen flex items-center justify-center">
       <button
         onClick={onReturn}
-        style={{ position: 'absolute', top: '1rem', left: '1rem', padding: '0.5rem 1rem' }}
+        className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
       >
         Retour à l'accueil
       </button>
-      <h2>Devine le Pokémon (Mode Sonore)!</h2>
-      {enableTimer && <p>Temps restant : {timeLeft} secondes</p>}
-      <p>Points : {points} | Streak : {streak}</p>
-      <audio controls src={cryUrl} style={{ margin: '1rem' }} />
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          placeholder="Entrez le nom du Pokémon (FR ou EN)"
-          style={{ padding: '0.5rem' }}
-          disabled={isRevealed || (enableTimer && timeLeft === 0)}
+
+      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <img
+          src="/images/PokeQuizLogo.png"
+          alt="PokeQuiz Logo"
+          className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
         />
-        <button
-          type="submit"
-          style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }}
-          disabled={isRevealed || (enableTimer && timeLeft === 0)}
-        >
-          Valider
-        </button>
-      </form>
-      <p>{feedback}</p>
-      {!isRevealed && (
-        <button
-          onClick={handleGiveUp}
-          style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}
-        >
-          Donner la réponse (-1 point)
-        </button>
-      )}
-      {isRevealed && (
-        <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
-          Pokémon Suivant
-        </button>
-      )}
+        <h2 className="text-xl font-bold mb-2">Devine le Pokémon !</h2>
+
+        {enableTimer && (
+          <p className="mb-2">Temps restant : {timeLeft} seconde(s)</p>
+        )}
+        <p className="mb-4">Points : {points} | Streak : {streak}</p>
+
+        <audio controls src={cryUrl} className="mx-auto mb-4" />
+
+        <form onSubmit={handleSubmit} className="mb-4">
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder="Entrez le nom du Pokémon"
+            className="p-2 border-2 border-blue-800 rounded"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
+          />
+          <button
+            type="submit"
+            className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
+          >
+            Valider
+          </button>
+        </form>
+
+        <p className="mb-4">{feedback}</p>
+
+        {!isRevealed && (
+          <button
+            onClick={handleGiveUp}
+            className="mr-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+          >
+            Donner la réponse (-1 point)
+          </button>
+        )}
+        {isRevealed && (
+          <button
+            onClick={handleNext}
+            className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+          >
+            Pokémon Suivant
+          </button>
+        )}
+      </div>
     </div>
   );
 };
