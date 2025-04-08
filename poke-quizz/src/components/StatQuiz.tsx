@@ -157,7 +157,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints((prev) => Math.max(prev - 3, 0));
-    setFeedback(`La réponse était : ${pokemon?.nameFr} / ${pokemon?.nameEn}. (-3 points)`);
+    setFeedback(`La réponse était : ${pokemon?.nameFr}. (-3 points)`);
     setIsRevealed(true);
   };
 
@@ -193,11 +193,6 @@ const StatQuiz: React.FC<StatQuizProps> = ({
           Points : {points} | Pokémon trouvés : {correctCount}
         </p>
 
-        {enableTimer && timeLeft > 0 && (
-          <p className="mb-2">
-            Temps restant : {timeLeft} seconde(s)
-          </p>
-        )}
 
         {clues.length > 0 && (
           <div className="mb-4">
@@ -215,7 +210,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
             type="text"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
-            placeholder="Entrez le nom du Pokémon (FR ou EN)"
+            placeholder="Entrez le nom du Pokémon"
             className="p-2 border-2 border-blue-800 rounded"
             disabled={isRevealed || (enableTimer && timeLeft === 0)}
           />
