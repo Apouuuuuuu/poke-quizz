@@ -39,7 +39,6 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const [points, setPoints] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
 
-  // Timer
   const [timeLeft, setTimeLeft] = useState(selectedTime);
 
   useEffect(() => {
@@ -83,8 +82,6 @@ const StatQuiz: React.FC<StatQuizProps> = ({
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
 
-      const newClues: string[] = [];
-
       const hp = data.stats.find((s: any) => s.stat.name === 'hp')?.base_stat;
       const attack = data.stats.find((s: any) => s.stat.name === 'attack')?.base_stat;
       const spAttack = data.stats.find((s: any) => s.stat.name === 'special-attack')?.base_stat;
@@ -92,6 +89,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
       const spDefense = data.stats.find((s: any) => s.stat.name === 'special-defense')?.base_stat;
       const speed = data.stats.find((s: any) => s.stat.name === 'speed')?.base_stat;
 
+      const newClues: string[] = [];
       if (hp !== undefined) newClues.push(`HP: ${hp}`);
       if (data.height !== undefined) newClues.push(`Taille: ${data.height}`);
       if (data.weight !== undefined) newClues.push(`Poids: ${data.weight}`);
@@ -192,7 +190,6 @@ const StatQuiz: React.FC<StatQuizProps> = ({
         <p className="mb-2">
           Points : {points} | Pokémon trouvés : {correctCount}
         </p>
-
 
         {clues.length > 0 && (
           <div className="mb-4">

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
+const generationRanges: { [gen: number]: [number, number] } = {
+  1: [1, 151],
+  2: [152, 251],
+  3: [252, 386],
+  4: [387, 493],
+  5: [494, 649],
+  6: [650, 721],
+  7: [722, 809],
+  8: [810, 898],
+  9: [899, 1010],
+};
+
 interface PokemonData {
   nameEn: string;
   nameFr: string;
@@ -20,24 +32,12 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
 }) => {
   const [pokemon, setPokemon] = useState<PokemonData | null>(null);
   const [pokemonId, setPokemonId] = useState<number>(0);
-  const [guess, setGuess] = useState<string>('');
-  const [feedback, setFeedback] = useState<string>('');
-  const [isRevealed, setIsRevealed] = useState<boolean>(false);
-  const [points, setPoints] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState<number>(selectedTime);
-
-  const generationRanges: { [gen: number]: [number, number] } = {
-    1: [1, 2],
-    2: [152, 251],
-    3: [252, 386],
-    4: [387, 493],
-    5: [494, 649],
-    6: [650, 721],
-    7: [722, 809],
-    8: [810, 898],
-    9: [899, 1010],
-  };
+  const [guess, setGuess] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(selectedTime);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -52,6 +52,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
   useEffect(() => {
     if (enableTimer && timeLeft === 0) {
       setFeedback('Temps écoulé !');
+      setIsRevealed(true);
     }
   }, [timeLeft, enableTimer]);
 
@@ -70,10 +71,13 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
         randomId = Math.floor(Math.random() * (max - min + 1)) + min;
       }
       setPokemonId(randomId);
+
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
+
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
+
       const nameEn =
         speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
       const nameFr =
@@ -94,6 +98,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isRevealed || !pokemon || (enableTimer && timeLeft === 0)) return;
+
     const userGuess = guess.trim().toLowerCase();
     const possibleAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (possibleAnswers.includes(userGuess)) {
@@ -109,7 +114,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
 
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
-    setPoints(Math.max(points - 1, 0));
+    setPoints((prev) => Math.max(prev - 1, 0));
     setStreak(0);
     setFeedback(`La réponse était : ${pokemon?.nameFr}. (-1 point)`);
     setIsRevealed(true);
@@ -122,6 +127,12 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
 
   return (
     <div className="relative min-h-screen flex items-center justify-center">
+      {enableTimer && timeLeft > 0 && (
+        <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
+          Temps restant : {timeLeft} seconde(s)
+        </p>
+      )}
+
       <button
         onClick={onReturn}
         className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
@@ -137,10 +148,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
         />
         <h2 className="text-xl font-bold mb-2">Devine le Pokémon !</h2>
 
-        {enableTimer && (
-          <p className="mb-2">Temps restant : {timeLeft} seconde(s)</p>
-        )}
-        <p className="mb-4">Points : {points} | Streak : {streak}</p>
+        <p className="mb-2">Points : {points} | Streak : {streak}</p>
 
         <audio controls src={cryUrl} className="mx-auto mb-4" />
 
@@ -172,6 +180,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
             Donner la réponse (-1 point)
           </button>
         )}
+
         {isRevealed && (
           <button
             onClick={handleNext}
