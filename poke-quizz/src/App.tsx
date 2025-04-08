@@ -66,8 +66,11 @@ const App: React.FC = () => {
         <StatQuiz
           onReturn={() => setMode('lobby')}
           selectedGenerations={gameOptions.selectedGenerations}
+          enableTimer={gameOptions.enableTimer}
+          selectedTime={gameOptions.selectedTime}
         />
       )}
+
     </div>
   );
 };

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
+const generationRanges: { [gen: number]: [number, number] } = {
+  1: [1, 151],
+  2: [152, 251],
+  3: [252, 386],
+  4: [387, 493],
+  5: [494, 649],
+  6: [650, 721],
+  7: [722, 809],
+  8: [810, 898],
+  9: [899, 1010],
+};
+
 interface PokemonData {
   nameEn: string;
   nameFr: string;
@@ -8,29 +20,46 @@ interface PokemonData {
 interface StatQuizProps {
   onReturn: () => void;
   selectedGenerations: number[];
+  enableTimer: boolean;
+  selectedTime: number;
 }
 
-const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) => {
+const StatQuiz: React.FC<StatQuizProps> = ({
+  onReturn,
+  selectedGenerations,
+  enableTimer,
+  selectedTime,
+}) => {
   const [pokemon, setPokemon] = useState<PokemonData | null>(null);
   const [clues, setClues] = useState<string[]>([]);
-  const [clueIndex, setClueIndex] = useState<number>(0);
-  const [guess, setGuess] = useState<string>('');
-  const [feedback, setFeedback] = useState<string>('');
-  const [isRevealed, setIsRevealed] = useState<boolean>(false);
-  const [points, setPoints] = useState<number>(0);
-  const [correctCount, setCorrectCount] = useState<number>(0);
+  const [clueIndex, setClueIndex] = useState(0);
+  const [guess, setGuess] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
 
-  const generationRanges: { [gen: number]: [number, number] } = {
-    1: [1, 1],
-    2: [152, 251],
-    3: [252, 386],
-    4: [387, 493],
-    5: [494, 649],
-    6: [650, 721],
-    7: [722, 809],
-    8: [810, 898],
-    9: [899, 1010],
-  };
+  // Timer
+  const [timeLeft, setTimeLeft] = useState(selectedTime);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (enableTimer && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [enableTimer, timeLeft]);
+
+  useEffect(() => {
+    if (enableTimer && timeLeft === 0) {
+      setFeedback('Temps écoulé !');
+      setIsRevealed(true);
+    }
+  }, [enableTimer, timeLeft]);
 
   const fetchRandomPokemon = async () => {
     try {
@@ -38,6 +67,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
       setIsRevealed(false);
       setGuess('');
       setClueIndex(0);
+
       let randomId = 0;
       if (selectedGenerations.length === 0) {
         randomId = Math.floor(Math.random() * 151) + 1;
@@ -47,137 +77,188 @@ const StatQuiz: React.FC<StatQuizProps> = ({ onReturn, selectedGenerations }) =>
         const [min, max] = generationRanges[randomGen];
         randomId = Math.floor(Math.random() * (max - min + 1)) + min;
       }
+
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
 
       const newClues: string[] = [];
+
       const hp = data.stats.find((s: any) => s.stat.name === 'hp')?.base_stat;
+      const attack = data.stats.find((s: any) => s.stat.name === 'attack')?.base_stat;
+      const spAttack = data.stats.find((s: any) => s.stat.name === 'special-attack')?.base_stat;
+      const defense = data.stats.find((s: any) => s.stat.name === 'defense')?.base_stat;
+      const spDefense = data.stats.find((s: any) => s.stat.name === 'special-defense')?.base_stat;
+      const speed = data.stats.find((s: any) => s.stat.name === 'speed')?.base_stat;
+
       if (hp !== undefined) newClues.push(`HP: ${hp}`);
       if (data.height !== undefined) newClues.push(`Taille: ${data.height}`);
       if (data.weight !== undefined) newClues.push(`Poids: ${data.weight}`);
+
       if (speciesData.habitat && speciesData.habitat.name) {
         newClues.push(`Habitat: ${speciesData.habitat.name}`);
       } else {
-        newClues.push(`Habitat: inconnu`);
+        newClues.push('Habitat: inconnu');
       }
+
       if (speciesData.generation && speciesData.generation.name) {
         newClues.push(`Génération: ${speciesData.generation.name}`);
       } else {
-        newClues.push(`Génération: inconnu`);
+        newClues.push('Génération: inconnu');
       }
-      const attack = data.stats.find((s: any) => s.stat.name === 'attack')?.base_stat;
+
       if (attack !== undefined) newClues.push(`Attaque: ${attack}`);
-      const spAttack = data.stats.find((s: any) => s.stat.name === 'special-attack')?.base_stat;
       if (spAttack !== undefined) newClues.push(`Attaque Spéciale: ${spAttack}`);
-      const defense = data.stats.find((s: any) => s.stat.name === 'defense')?.base_stat;
       if (defense !== undefined) newClues.push(`Défense: ${defense}`);
-      const spDefense = data.stats.find((s: any) => s.stat.name === 'special-defense')?.base_stat;
       if (spDefense !== undefined) newClues.push(`Défense Spéciale: ${spDefense}`);
-      const speed = data.stats.find((s: any) => s.stat.name === 'speed')?.base_stat;
       if (speed !== undefined) newClues.push(`Vitesse: ${speed}`);
+
       if (speciesData.color && speciesData.color.name) {
         newClues.push(`Couleur: ${speciesData.color.name}`);
       } else {
-        newClues.push(`Couleur: inconnu`);
+        newClues.push('Couleur: inconnu');
       }
+
       setClues(newClues);
+
       const nameEn =
         speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
       const nameFr =
         speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
       setPokemon({ nameEn, nameFr });
-    } catch (error) {
-      console.error(error);
+    } catch {
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
   };
 
   useEffect(() => {
     fetchRandomPokemon();
-  }, []);
+    setTimeLeft(selectedTime);
+  }, [selectedGenerations, selectedTime]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isRevealed || !pokemon) return;
+    if (isRevealed || !pokemon || (enableTimer && timeLeft === 0)) return;
     const userGuess = guess.trim().toLowerCase();
     const correctAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (correctAnswers.includes(userGuess)) {
-      const additionalCluesUsed = clueIndex;
-      const earnedPoints = Math.max(10 - additionalCluesUsed, 1);
-      setPoints(points + earnedPoints);
+      const usedClues = clueIndex;
+      const earnedPoints = Math.max(10 - usedClues, 1);
+      setPoints((prev) => prev + earnedPoints);
       setFeedback(`Bravo, bonne réponse ! (+${earnedPoints} points)`);
       setIsRevealed(true);
-      setCorrectCount(correctCount + 1);
+      setCorrectCount((prev) => prev + 1);
     } else {
       setFeedback('Mauvaise réponse, réessaie !');
     }
   };
 
   const handleGiveUp = () => {
-    if (!pokemon) return;
-    setPoints(Math.max(points - 3, 0));
-    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-3 points)`);
+    if (!pokemon || (enableTimer && timeLeft === 0)) return;
+    setPoints((prev) => Math.max(prev - 3, 0));
+    setFeedback(`La réponse était : ${pokemon?.nameFr} / ${pokemon?.nameEn}. (-3 points)`);
     setIsRevealed(true);
   };
 
   const handleNext = () => {
+    if (enableTimer && timeLeft === 0) return;
     fetchRandomPokemon();
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem', position: 'relative' }}>
+    <div className="relative min-h-screen flex items-center justify-center">
+      {enableTimer && timeLeft > 0 && (
+        <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
+          Temps restant : {timeLeft} seconde(s)
+        </p>
+      )}
+
       <button
         onClick={onReturn}
-        style={{ position: 'absolute', top: '1rem', left: '1rem', padding: '0.5rem 1rem' }}
+        className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
       >
         Retour à l'accueil
       </button>
-      <h2>Mode Stat Quiz</h2>
-      <p>Points : {points} | Pokémon trouvés : {correctCount}</p>
-      {clues.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <h3>Indices révélés :</h3>
-          <ul style={{ listStyleType: 'none', padding: 0 }}>
-            {clues.slice(0, clueIndex + 1).map((clue, index) => (
-              <li key={index}>{clue}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          placeholder="Entrez le nom du Pokémon (FR ou EN)"
-          style={{ padding: '0.5rem' }}
-          disabled={isRevealed}
+
+      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <img
+          src="/images/PokeQuizLogo.png"
+          alt="PokeQuiz Logo"
+          className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
         />
-        <button type="submit" style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem' }} disabled={isRevealed}>
-          Valider
-        </button>
-      </form>
-      <p>{feedback}</p>
-      {!isRevealed && (
-        <>
+        <h2 className="text-xl font-bold mb-2">Mode Stat Quiz</h2>
+
+        <p className="mb-2">
+          Points : {points} | Pokémon trouvés : {correctCount}
+        </p>
+
+        {enableTimer && timeLeft > 0 && (
+          <p className="mb-2">
+            Temps restant : {timeLeft} seconde(s)
+          </p>
+        )}
+
+        {clues.length > 0 && (
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Indices révélés :</h3>
+            <ul className="list-none p-0">
+              {clues.slice(0, clueIndex + 1).map((clue, index) => (
+                <li key={index}>{clue}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mb-4">
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder="Entrez le nom du Pokémon (FR ou EN)"
+            className="p-2 border-2 border-blue-800 rounded"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
+          />
           <button
-            onClick={() => setClueIndex(Math.min(clueIndex + 1, clues.length - 1))}
-            style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}
+            type="submit"
+            className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+            disabled={isRevealed || (enableTimer && timeLeft === 0)}
           >
-            Obtenir un indice supplémentaire
+            Valider
           </button>
-          <button onClick={handleGiveUp} style={{ marginRight: '0.5rem', padding: '0.5rem 1rem' }}>
-            Donner la réponse (-3 points)
+        </form>
+
+        <p className="mb-4">{feedback}</p>
+
+        {!isRevealed && (
+          <div className="mb-4">
+            <button
+              onClick={() => setClueIndex((prev) => Math.min(prev + 1, clues.length - 1))}
+              className="mr-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              disabled={enableTimer && timeLeft === 0}
+            >
+              Obtenir un indice supplémentaire
+            </button>
+            <button
+              onClick={handleGiveUp}
+              className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              disabled={enableTimer && timeLeft === 0}
+            >
+              Donner la réponse (-3 points)
+            </button>
+          </div>
+        )}
+
+        {isRevealed && (
+          <button
+            onClick={handleNext}
+            className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+            disabled={enableTimer && timeLeft === 0}
+          >
+            Pokémon Suivant
           </button>
-        </>
-      )}
-      {isRevealed && (
-        <button onClick={handleNext} style={{ padding: '0.5rem 1rem' }}>
-          Pokémon Suivant
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 };

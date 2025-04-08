@@ -28,7 +28,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
   const [timeLeft, setTimeLeft] = useState<number>(selectedTime);
 
   const generationRanges: { [gen: number]: [number, number] } = {
-    1: [1, 151],
+    1: [1, 2],
     2: [152, 251],
     3: [252, 386],
     4: [387, 493],
