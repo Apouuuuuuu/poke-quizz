@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Footer from './Footer';
 
 const generationRanges: { [gen: number]: [number, number] } = {
   1: [1, 151],
@@ -38,7 +39,6 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const [isRevealed, setIsRevealed] = useState(false);
   const [points, setPoints] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
-
   const [timeLeft, setTimeLeft] = useState(selectedTime);
 
   useEffect(() => {
@@ -165,92 +165,73 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center">
+    <div className="relative min-h-screen flex flex-col bg-cover bg-center">
       {enableTimer && timeLeft > 0 && (
         <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
           Temps restant : {timeLeft} seconde(s)
         </p>
       )}
-
       <button
         onClick={onReturn}
         className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
       >
         Retour à l'accueil
       </button>
-
-      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <img
-          src="/images/PokeQuizLogo.png"
-          alt="PokeQuiz Logo"
-          className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
-        />
-        <h2 className="text-xl font-bold mb-2">Mode Stat Quiz</h2>
-
-        <p className="mb-2">
-          Points : {points} | Pokémon trouvés : {correctCount}
-        </p>
-
-        {clues.length > 0 && (
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2">Indices révélés :</h3>
-            <ul className="list-none p-0">
-              {clues.slice(0, clueIndex + 1).map((clue, index) => (
-                <li key={index}>{clue}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="mb-4">
-          <input
-            type="text"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="Entrez le nom du Pokémon"
-            className="p-2 border-2 border-blue-800 rounded"
-            disabled={isRevealed || (enableTimer && timeLeft === 0)}
-          />
-          <button
-            type="submit"
-            className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-            disabled={isRevealed || (enableTimer && timeLeft === 0)}
-          >
-            Valider
-          </button>
-        </form>
-
-        <p className="mb-4">{feedback}</p>
-
-        {!isRevealed && (
-          <div className="mb-4">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold mb-2">Devine le Pokémon !</h2>
+          <p className="mb-2">
+            Points : {points} | Pokémon trouvés : {correctCount}
+          </p>
+          {clues.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Indices révélés :</h3>
+              <ul className="list-none p-0">
+                {clues.slice(0, clueIndex + 1).map((clue, index) => (
+                  <li key={index}>{clue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="mb-4">
+            <input
+              type="text"
+              value={guess}
+              onChange={(e) => setGuess(e.target.value)}
+              placeholder="Entrez le nom du Pokémon"
+              className="p-2 border-2 border-blue-800 rounded"
+              disabled={isRevealed || (enableTimer && timeLeft === 0)}
+            />
             <button
-              onClick={() => setClueIndex((prev) => Math.min(prev + 1, clues.length - 1))}
-              className="mr-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-              disabled={enableTimer && timeLeft === 0}
+              type="submit"
+              className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              disabled={isRevealed || (enableTimer && timeLeft === 0)}
             >
-              Obtenir un indice supplémentaire
+              Valider
             </button>
+          </form>
+          <p className="mb-4">{feedback}</p>
+          {!isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
             <button
               onClick={handleGiveUp}
+              className="mb-4 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              disabled={enableTimer && timeLeft === 0}
+            >
+              Donner la réponse (-1 point)
+            </button>
+          )}
+          {isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
+            <button
+              onClick={handleNext}
               className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
               disabled={enableTimer && timeLeft === 0}
             >
-              Donner la réponse (-3 points)
+              Pokémon Suivant
             </button>
-          </div>
-        )}
-
-        {isRevealed && (
-          <button
-            onClick={handleNext}
-            className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-            disabled={enableTimer && timeLeft === 0}
-          >
-            Pokémon Suivant
-          </button>
-        )}
+          )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };

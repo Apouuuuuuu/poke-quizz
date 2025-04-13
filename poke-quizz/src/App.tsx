@@ -3,7 +3,6 @@ import Lobby from './components/Lobby';
 import PhotoQuiz from './components/PhotoQuiz';
 import SoundQuiz from './components/SoundQuiz';
 import StatQuiz from './components/StatQuiz';
-import Footer from './components/Footer';
 import './App.css';
 
 type Mode = 'lobby' | 'photo' | 'sound' | 'stat';
@@ -76,7 +75,6 @@ const App: React.FC = () => {
           />
         )}
       </div>
-      <Footer />
     </div>
   );
 };

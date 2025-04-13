@@ -1,9 +1,14 @@
 import React from 'react';
 import { FaGithub } from 'react-icons/fa';
 
+const GitHubIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
+  const Icon = FaGithub as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
+  return <Icon {...props} />;
+};
+
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-black text-white p-4 flex items-center justify-center">
+    <footer className="text-white p-2 flex items-center justify-center">
       <a
         href="https://github.com/Apouuuuuuu/poke-quizz"
         target="_blank"
@@ -11,12 +16,9 @@ const Footer: React.FC = () => {
         className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
       >
         <span className="text-sm sm:text-base">
-          Réalisé par <strong>Théo Gagelin</strong>
+          Made by <strong>Apou</strong>
         </span>
-
-        {React.createElement(FaGithub as any, {
-          className: 'w-5 h-5 fill-current',
-        })}
+        <GitHubIcon className="w-5 h-5 fill-current" />
       </a>
     </footer>
   );

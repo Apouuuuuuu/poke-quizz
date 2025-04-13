@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Footer from './Footer';
 
 interface PokemonData {
   nameEn: string;
@@ -42,17 +43,6 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     9: [899, 1010],
   };
 
-  const formatTime = (seconds: number) => {
-    if (seconds >= 60) {
-      const minutes = Math.floor(seconds / 60);
-      const remaining = seconds % 60;
-      return remaining === 0
-        ? `${minutes} minute(s)`
-        : `${minutes} minute(s) ${remaining} second(s)`;
-    }
-    return `${seconds} second(s)`;
-  };
-
   useEffect(() => {
     if (gameStarted && enableTimer && timeLeft > 0) {
       timerRef.current = setInterval(() => {
@@ -89,10 +79,11 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
-
       setPokemon({
-        nameEn: speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name,
-        nameFr: speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name,
+        nameEn:
+          speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name,
+        nameFr:
+          speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name,
         sprite: data.sprites.front_default,
       });
     } catch (error) {
@@ -147,115 +138,102 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     return 'blur(8px)';
   };
 
-  // Écran de configuration
-  if (!gameStarted || localDifficulty === '') {
-    return (
-      <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center">
-        <button
-          onClick={onReturn}
-          className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
-        >
-          Retour à l'accueil
-        </button>
-        <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-          <img
-            src="/images/PokeQuizLogo.png"
-            alt="PokeQuiz Logo"
-            className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
-          />
-          <h2 className="text-xl font-bold mb-4">Devine le Pokémon !</h2>
-          <p className="mb-4">Choisissez la difficulté :</p>
-          <select
-            value={localDifficulty}
-            onChange={(e) => setLocalDifficulty(e.target.value)}
-            className="p-2 border-2 border-blue-800 rounded mb-4"
-          >
-            <option value="">-- Sélectionnez --</option>
-            <option value="débutant">Débutant (sans flou)</option>
-            <option value="facile">Facile (un peu flou)</option>
-            <option value="moyen">Moyen (flou modéré)</option>
-            <option value="difficile">Très flou (grayscale)</option>
-            <option value="expert">Extrêmement flou (grayscale)</option>
-          </select>
-          <button
-            onClick={() => setGameStarted(true)}
-            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg"
-          >
-            Commencer le PhotoQuiz
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center">
-      {enableTimer && timeLeft > 0 && (
-        <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
-          Temps restant : {timeLeft} seconde(s)
-        </p>
-      )}
-
+    <div className="min-h-screen flex flex-col bg-cover bg-center relative">
       <button
         onClick={onReturn}
         className="absolute top-4 left-4 p-2 border-2 border-white text-white rounded hover:scale-105 transition-transform"
       >
         Retour à l'accueil
       </button>
-
-      <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <h2 className="text-2xl font-bold mb-2">Devine le Pokémon !</h2>
-        
-        <p className="mb-4">Points : {points} | Streak : {streak}</p>
-
-        {pokemon && (
-          <div className="mb-4">
+      {!gameStarted || localDifficulty === '' ? (
+        <div className="flex-grow flex items-center justify-center">
+          <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
             <img
-              src={pokemon.sprite}
-              alt={pokemon.nameEn}
-              className="mx-auto"
-              style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
+              src="/images/PokeQuizLogo.png"
+              alt="PokeQuiz Logo"
+              className="mx-auto mb-4 w-3/4 hover:scale-110 transition-transform duration-300"
             />
+            <h2 className="text-xl font-bold mb-4">Devine le Pokémon !</h2>
+            <p className="mb-4">Choisissez la difficulté :</p>
+            <select
+              value={localDifficulty}
+              onChange={(e) => setLocalDifficulty(e.target.value)}
+              className="p-2 border-2 border-blue-800 rounded mb-4"
+            >
+              <option value="">-- Sélectionnez --</option>
+              <option value="débutant">Débutant (sans flou)</option>
+              <option value="facile">Facile (un peu flou)</option>
+              <option value="moyen">Moyen (flou modéré)</option>
+              <option value="difficile">Très flou (grayscale)</option>
+              <option value="expert">Extrêmement flou (grayscale)</option>
+            </select>
+            <button
+              onClick={() => setGameStarted(true)}
+              className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-800 font-bold py-3 rounded shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              Commencer le PhotoQuiz
+            </button>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="mb-4">
-          <input
-            type="text"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="Entrez le nom du Pokémon"
-            className="p-2 border-2 border-blue-800 rounded"
-            disabled={isRevealed || (enableTimer && timeLeft === 0)}
-          />
-          <button
-            type="submit"
-            className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-            disabled={isRevealed || (enableTimer && timeLeft === 0)}
-          >
-            Valider
-          </button>
-        </form>
-
-        <p className="mb-4">{feedback}</p>
-
-        {!isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
-          <button
-            onClick={handleGiveUp}
-            className="mb-4 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-          >
-            Donner la réponse (-1 point)
-          </button>
-        )}
-        {isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
-          <button
-            onClick={handleNext}
-            className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
-          >
-            Pokémon Suivant
-          </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex-grow flex items-center justify-center">
+          <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center relative">
+            {enableTimer && timeLeft > 0 && (
+              <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
+                Temps restant : {timeLeft} seconde(s)
+              </p>
+            )}
+            <h2 className="text-2xl font-bold mb-2">Devine le Pokémon !</h2>
+            <p className="mb-4">Points : {points} | Streak : {streak}</p>
+            {pokemon && (
+              <div className="mb-4">
+                <img
+                  src={pokemon.sprite}
+                  alt={pokemon.nameEn}
+                  className="mx-auto"
+                  style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
+                />
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="mb-4">
+              <input
+                type="text"
+                value={guess}
+                onChange={(e) => setGuess(e.target.value)}
+                placeholder="Entrez le nom du Pokémon"
+                className="p-2 border-2 border-blue-800 rounded"
+                disabled={isRevealed || (enableTimer && timeLeft === 0)}
+              />
+              <button
+                type="submit"
+                className="ml-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+                disabled={isRevealed || (enableTimer && timeLeft === 0)}
+              >
+                Valider
+              </button>
+            </form>
+            <p className="mb-4">{feedback}</p>
+            {!isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
+              <button
+                onClick={handleGiveUp}
+                className="mb-4 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              >
+                Donner la réponse (-1 point)
+              </button>
+            )}
+            {isRevealed && (!enableTimer || (enableTimer && timeLeft > 0)) && (
+              <button
+                onClick={handleNext}
+                className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+              >
+                Pokémon Suivant
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      <Footer />
     </div>
   );
 };
