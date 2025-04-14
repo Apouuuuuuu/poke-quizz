@@ -21,22 +21,21 @@ const App: React.FC = () => {
     selectedGenerations: [1],
   });
 
-  const backgrounds = [
-    '/images/background/articodin.jpg',
-    '/images/background/caninos.jpg',
-    '/images/background/darkrai.jpg',
-    '/images/background/fantominus.jpg',
-    '/images/background/lugia.jpg',
-    '/images/background/noctali.jpg',
-    '/images/background/plante.jpg',
-    '/images/background/spectrum.jpg',
-    '/images/background/tenebre.jpg',
-  ];
-
   const randomBg = useMemo(() => {
+    const backgrounds = [
+      '/images/background/articodin.jpg',
+      '/images/background/caninos.jpg',
+      '/images/background/darkrai.jpg',
+      '/images/background/fantominus.jpg',
+      '/images/background/lugia.jpg',
+      '/images/background/noctali.jpg',
+      '/images/background/plante.jpg',
+      '/images/background/spectrum.jpg',
+      '/images/background/tenebre.jpg',
+    ];
     return backgrounds[Math.floor(Math.random() * backgrounds.length)];
-  }, [backgrounds]);
-
+  }, []); // Tableau de dépendances vide
+  
   return (
     <div className="flex flex-col min-h-screen">
       <div
