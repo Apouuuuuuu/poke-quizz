@@ -41,24 +41,17 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const [correctCount, setCorrectCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(selectedTime);
 
-  // Timer via setInterval
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (enableTimer) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
+    let timer: NodeJS.Timeout | null = null;
+    if (enableTimer && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
       }, 1000);
     }
     return () => {
-      if (interval) clearInterval(interval);
+      if (timer) clearInterval(timer);
     };
-  }, [enableTimer]);
+  }, [enableTimer, timeLeft]);
 
   useEffect(() => {
     if (enableTimer && timeLeft === 0) {
@@ -73,68 +66,55 @@ const StatQuiz: React.FC<StatQuizProps> = ({
       setIsRevealed(false);
       setGuess('');
       setClueIndex(0);
-
       let randomId = 0;
       if (selectedGenerations.length === 0) {
         randomId = Math.floor(Math.random() * 151) + 1;
       } else {
-        const randomGen =
-          selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
+        const randomGen = selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
         const [min, max] = generationRanges[randomGen];
         randomId = Math.floor(Math.random() * (max - min + 1)) + min;
       }
-
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
-
-      // Récupération des statistiques et indices
       const hp = data.stats.find((s: any) => s.stat.name === 'hp')?.base_stat;
       const attack = data.stats.find((s: any) => s.stat.name === 'attack')?.base_stat;
       const spAttack = data.stats.find((s: any) => s.stat.name === 'special-attack')?.base_stat;
       const defense = data.stats.find((s: any) => s.stat.name === 'defense')?.base_stat;
       const spDefense = data.stats.find((s: any) => s.stat.name === 'special-defense')?.base_stat;
       const speed = data.stats.find((s: any) => s.stat.name === 'speed')?.base_stat;
-
       const newClues: string[] = [];
       if (hp !== undefined) newClues.push(`HP: ${hp}`);
       if (data.height !== undefined) newClues.push(`Taille: ${data.height}`);
       if (data.weight !== undefined) newClues.push(`Poids: ${data.weight}`);
-
       if (speciesData.habitat && speciesData.habitat.name) {
         newClues.push(`Habitat: ${speciesData.habitat.name}`);
       } else {
         newClues.push('Habitat: inconnu');
       }
-
       if (speciesData.generation && speciesData.generation.name) {
         newClues.push(`Génération: ${speciesData.generation.name}`);
       } else {
         newClues.push('Génération: inconnu');
       }
-
       if (attack !== undefined) newClues.push(`Attaque: ${attack}`);
       if (spAttack !== undefined) newClues.push(`Attaque Spéciale: ${spAttack}`);
       if (defense !== undefined) newClues.push(`Défense: ${defense}`);
       if (spDefense !== undefined) newClues.push(`Défense Spéciale: ${spDefense}`);
       if (speed !== undefined) newClues.push(`Vitesse: ${speed}`);
-
       if (speciesData.color && speciesData.color.name) {
         newClues.push(`Couleur: ${speciesData.color.name}`);
       } else {
         newClues.push('Couleur: inconnu');
       }
-
       setClues(newClues);
-
       const nameEn =
         speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
       const nameFr =
         speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
       setPokemon({ nameEn, nameFr });
-    } catch (error) {
-      console.error(error);
+    } catch {
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
   }, [selectedGenerations]);
@@ -200,6 +180,15 @@ const StatQuiz: React.FC<StatQuizProps> = ({
                   <li key={index}>{clue}</li>
                 ))}
               </ul>
+              {clues.length > clueIndex + 1 && (
+                <button
+                  onClick={() => setClueIndex((prev) => prev + 1)}
+                  className="mt-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+                  disabled={enableTimer && timeLeft === 0}
+                >
+                  Obtenir un indice supplémentaire
+                </button>
+              )}
             </div>
           )}
           <form onSubmit={handleSubmit} className="mb-4">
