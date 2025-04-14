@@ -41,18 +41,13 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (gameStarted && enableTimer) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
       }, 1000);
     }
     return () => {
@@ -72,6 +67,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       setFeedback('');
       setIsRevealed(false);
       setGuess('');
+      setClueIndex(0);
       let randomId = 0;
       if (selectedGenerations.length === 0) {
         randomId = Math.floor(Math.random() * 151) + 1;
@@ -86,10 +82,8 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
       setPokemon({
-        nameEn:
-          speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name,
-        nameFr:
-          speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name,
+        nameEn: speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name,
+        nameFr: speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name,
         sprite: data.sprites.front_default,
       });
     } catch (error) {
@@ -104,6 +98,26 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       if (enableTimer) setTimeLeft(selectedTime);
     }
   }, [gameStarted, fetchRandomPokemon, enableTimer, selectedTime]);
+
+  const getFilterStyle = () => {
+    if (isRevealed) return 'none';
+    switch (localDifficulty) {
+      case 'débutant':
+        return 'none';
+      case 'facile':
+        return 'blur(4px)';
+      case 'moyen':
+        return 'blur(8px)';
+      case 'difficile':
+        return 'blur(10px) grayscale(100%)';
+      case 'expert':
+        return 'blur(12px) grayscale(100%)';
+      default:
+        return 'blur(8px)';
+    }
+  };
+
+  const [clueIndex, setClueIndex] = useState(0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,13 +156,11 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       >
         Retour à l'accueil
       </button>
-
       {enableTimer && timeLeft > 0 && (
-        <p className="absolute top-4 right-20 bg-white/80 px-3 py-1 rounded shadow">
+        <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
           Temps restant : {timeLeft} seconde(s)
         </p>
       )}
-
       {!gameStarted || localDifficulty === '' ? (
         <div className="flex-grow flex items-center justify-center">
           <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -167,7 +179,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
               <option value="">-- Sélectionnez --</option>
               <option value="débutant">Sans flou</option>
               <option value="facile">Un peu flou</option>
-              <option value="moyen">Flou sans couleur</option>
+              <option value="moyen">Flou</option>
               <option value="difficile">Très flou sans couleur</option>
               <option value="expert">Extrêmement flou sans couleur</option>
             </select>
@@ -190,7 +202,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
                   src={pokemon.sprite}
                   alt={pokemon.nameEn}
                   className="mx-auto"
-                  style={{ width: '200px', filter: isRevealed ? 'none' : 'blur(8px)', transition: 'filter 0.3s ease' }}
+                  style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
                 />
               </div>
             )}
@@ -216,6 +228,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
               <button
                 onClick={handleGiveUp}
                 className="mb-4 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+                disabled={enableTimer && timeLeft === 0}
               >
                 Donner la réponse (-1 point)
               </button>
@@ -224,6 +237,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
               <button
                 onClick={handleNext}
                 className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
+                disabled={enableTimer && timeLeft === 0}
               >
                 Pokémon Suivant
               </button>
