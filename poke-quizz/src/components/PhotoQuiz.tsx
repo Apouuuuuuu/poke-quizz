@@ -134,16 +134,6 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     fetchRandomPokemon();
   };
 
-  const getFilterStyle = () => {
-    if (isRevealed) return 'none';
-    if (localDifficulty === 'débutant') return 'none';
-    if (localDifficulty === 'facile') return 'blur(4px)';
-    if (localDifficulty === 'moyen') return 'blur(8px)';
-    if (localDifficulty === 'difficile') return 'blur(10px) grayscale(100%)';
-    if (localDifficulty === 'expert') return 'blur(12px) grayscale(100%)';
-    return 'blur(8px)';
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-cover bg-center relative">
       <button
@@ -152,6 +142,13 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       >
         Retour à l'accueil
       </button>
+
+      {enableTimer && timeLeft > 0 && (
+        <p className="absolute top-4 right-20 bg-white/80 px-3 py-1 rounded shadow">
+          Temps restant : {timeLeft} seconde(s)
+        </p>
+      )}
+
       {!gameStarted || localDifficulty === '' ? (
         <div className="flex-grow flex items-center justify-center">
           <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -184,12 +181,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
         </div>
       ) : (
         <div className="flex-grow flex items-center justify-center">
-          <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center relative">
-            {enableTimer && timeLeft > 0 && (
-              <p className="absolute top-4 right-4 bg-white/80 px-3 py-1 rounded shadow">
-                Temps restant : {timeLeft} seconde(s)
-              </p>
-            )}
+          <div className="bg-white/80 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
             <h2 className="text-2xl font-bold mb-2">Devine le Pokémon !</h2>
             <p className="mb-4">Points : {points} | Streak : {streak}</p>
             {pokemon && (
@@ -198,7 +190,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
                   src={pokemon.sprite}
                   alt={pokemon.nameEn}
                   className="mx-auto"
-                  style={{ width: '200px', filter: getFilterStyle(), transition: 'filter 0.3s ease' }}
+                  style={{ width: '200px', filter: isRevealed ? 'none' : 'blur(8px)', transition: 'filter 0.3s ease' }}
                 />
               </div>
             )}
