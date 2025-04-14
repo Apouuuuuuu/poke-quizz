@@ -1,7 +1,7 @@
 # 🎮 Poke-Quizz
 
 Poke-Quizz is an interactive quiz game built with React and TypeScript that tests your knowledge of Pokémon. Challenge yourself across multiple quiz modes—from identifying Pokémon by images, stats, or even their cries—and compete with friends to see who knows the most about these iconic creatures!
-### You can try it at <a href="https:https://poke-quiz.lol/" target="_blank" rel="noopener noreferrer">Poke-Quiz</a> !
+### You can try it at <a href="https://poke-quiz.lol/" target="_blank" rel="noopener noreferrer">Poke-Quiz</a> !
 
 ## ✨ Features
 
