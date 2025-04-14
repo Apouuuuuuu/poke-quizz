@@ -165,11 +165,11 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
               className="p-2 border-2 border-blue-800 rounded mb-4"
             >
               <option value="">-- Sélectionnez --</option>
-              <option value="débutant">Débutant (sans flou)</option>
-              <option value="facile">Facile (un peu flou)</option>
-              <option value="moyen">Moyen (flou modéré)</option>
-              <option value="difficile">Très flou (grayscale)</option>
-              <option value="expert">Extrêmement flou (grayscale)</option>
+              <option value="débutant">Sans flou</option>
+              <option value="facile">Un peu flou</option>
+              <option value="moyen">Flou sans couleur</option>
+              <option value="difficile">Très flou sans couleur</option>
+              <option value="expert">Extrêmement flou sans couleur</option>
             </select>
             <button
               onClick={() => setGameStarted(true)}
