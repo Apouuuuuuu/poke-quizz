@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
 const generationRanges: { [gen: number]: [number, number] } = {
@@ -41,14 +41,22 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
   const [timeLeft, setTimeLeft] = useState(selectedTime);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (enableTimer && timeLeft > 0) {
-      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    let interval: NodeJS.Timeout;
+    if (enableTimer) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
     return () => {
-      if (timer) clearInterval(timer);
+      if (interval) clearInterval(interval);
     };
-  }, [enableTimer, timeLeft]);
+  }, [enableTimer]);
 
   useEffect(() => {
     if (enableTimer && timeLeft === 0) {
@@ -57,7 +65,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     }
   }, [enableTimer, timeLeft]);
 
-  const fetchRandomPokemon = async () => {
+  const fetchRandomPokemon = useCallback(async () => {
     try {
       setFeedback('');
       setIsRevealed(false);
@@ -66,7 +74,8 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
       if (selectedGenerations.length === 0) {
         randomId = Math.floor(Math.random() * 151) + 1;
       } else {
-        const randomGen = selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
+        const randomGen =
+          selectedGenerations[Math.floor(Math.random() * selectedGenerations.length)];
         const [min, max] = generationRanges[randomGen];
         randomId = Math.floor(Math.random() * (max - min + 1)) + min;
       }
@@ -75,18 +84,21 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
       const data = await response.json();
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
-      const nameEn = speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
-      const nameFr = speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
+      const nameEn =
+        speciesData.names.find((n: any) => n.language.name === 'en')?.name || data.name;
+      const nameFr =
+        speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
       setPokemon({ nameEn, nameFr });
     } catch (error) {
       console.error(error);
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
-  };
+  }, [selectedGenerations]);
 
   useEffect(() => {
     fetchRandomPokemon();
-  }, []);
+    setTimeLeft(selectedTime);
+  }, [fetchRandomPokemon, selectedTime]);
 
   const cryUrl = `https://pokemoncries.com/cries/${pokemonId}.mp3`;
 
@@ -96,8 +108,8 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     const userGuess = guess.trim().toLowerCase();
     const possibleAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (possibleAnswers.includes(userGuess)) {
-      setPoints(points + 1);
-      setStreak(streak + 1);
+      setPoints((prev) => prev + 1);
+      setStreak((prev) => prev + 1);
       setFeedback('Bravo, bonne réponse !');
       setIsRevealed(true);
     } else {
@@ -110,7 +122,7 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints((prev) => Math.max(prev - 1, 0));
     setStreak(0);
-    setFeedback(`La réponse était : ${pokemon?.nameFr}. (-1 point)`);
+    setFeedback(`La réponse était : ${pokemon.nameFr}. (-1 point)`);
     setIsRevealed(true);
   };
 
@@ -160,15 +172,14 @@ const SoundQuiz: React.FC<SoundQuizProps> = ({
             </button>
           </form>
           <p className="mb-4">{feedback}</p>
-          {!isRevealed && (
+          {!isRevealed ? (
             <button
               onClick={handleGiveUp}
               className="mr-2 p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"
             >
               Donner la réponse (-1 point)
             </button>
-          )}
-          {isRevealed && (
+          ) : (
             <button
               onClick={handleNext}
               className="p-2 border-2 border-blue-800 rounded hover:scale-105 transition-transform"

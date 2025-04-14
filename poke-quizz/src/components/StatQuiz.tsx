@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
 const generationRanges: { [gen: number]: [number, number] } = {
@@ -41,17 +41,24 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const [correctCount, setCorrectCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(selectedTime);
 
+  // Timer via setInterval
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (enableTimer && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+    let interval: NodeJS.Timeout;
+    if (enableTimer) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
     return () => {
-      if (timer) clearInterval(timer);
+      if (interval) clearInterval(interval);
     };
-  }, [enableTimer, timeLeft]);
+  }, [enableTimer]);
 
   useEffect(() => {
     if (enableTimer && timeLeft === 0) {
@@ -60,7 +67,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
     }
   }, [enableTimer, timeLeft]);
 
-  const fetchRandomPokemon = async () => {
+  const fetchRandomPokemon = useCallback(async () => {
     try {
       setFeedback('');
       setIsRevealed(false);
@@ -82,6 +89,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
       const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
       const speciesData = await speciesResponse.json();
 
+      // Récupération des statistiques et indices
       const hp = data.stats.find((s: any) => s.stat.name === 'hp')?.base_stat;
       const attack = data.stats.find((s: any) => s.stat.name === 'attack')?.base_stat;
       const spAttack = data.stats.find((s: any) => s.stat.name === 'special-attack')?.base_stat;
@@ -125,15 +133,16 @@ const StatQuiz: React.FC<StatQuizProps> = ({
       const nameFr =
         speciesData.names.find((n: any) => n.language.name === 'fr')?.name || data.name;
       setPokemon({ nameEn, nameFr });
-    } catch {
+    } catch (error) {
+      console.error(error);
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
-  };
+  }, [selectedGenerations]);
 
   useEffect(() => {
     fetchRandomPokemon();
     setTimeLeft(selectedTime);
-  }, [selectedGenerations, selectedTime]);
+  }, [fetchRandomPokemon, selectedTime]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +164,7 @@ const StatQuiz: React.FC<StatQuizProps> = ({
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints((prev) => Math.max(prev - 3, 0));
-    setFeedback(`La réponse était : ${pokemon?.nameFr}. (-3 points)`);
+    setFeedback(`La réponse était : ${pokemon.nameFr}. (-3 points)`);
     setIsRevealed(true);
   };
 

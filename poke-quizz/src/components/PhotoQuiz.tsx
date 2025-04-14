@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
 interface PokemonData {
@@ -13,6 +13,18 @@ interface PhotoQuizProps {
   selectedTime: number;
   selectedGenerations: number[];
 }
+
+const generationRanges: { [gen: number]: [number, number] } = {
+  1: [1, 151],
+  2: [152, 251],
+  3: [252, 386],
+  4: [387, 493],
+  5: [494, 649],
+  6: [650, 721],
+  7: [722, 809],
+  8: [810, 898],
+  9: [899, 1010],
+};
 
 const PhotoQuiz: React.FC<PhotoQuizProps> = ({
   onReturn,
@@ -29,30 +41,24 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const generationRanges: { [gen: number]: [number, number] } = {
-    1: [1, 151],
-    2: [152, 251],
-    3: [252, 386],
-    4: [387, 493],
-    5: [494, 649],
-    6: [650, 721],
-    7: [722, 809],
-    8: [810, 898],
-    9: [899, 1010],
-  };
 
   useEffect(() => {
-    if (gameStarted && enableTimer && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+    let interval: NodeJS.Timeout;
+    if (gameStarted && enableTimer) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
     }
-  }, [gameStarted, enableTimer, timeLeft]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameStarted, enableTimer]);
 
   useEffect(() => {
     if (gameStarted && enableTimer && timeLeft === 0) {
@@ -61,7 +67,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     }
   }, [timeLeft, gameStarted, enableTimer]);
 
-  const fetchRandomPokemon = async () => {
+  const fetchRandomPokemon = useCallback(async () => {
     try {
       setFeedback('');
       setIsRevealed(false);
@@ -90,14 +96,14 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
       console.error(error);
       setFeedback('Impossible de charger un Pokémon. Réessaie plus tard.');
     }
-  };
+  }, [selectedGenerations]);
 
   useEffect(() => {
     if (gameStarted) {
       fetchRandomPokemon();
       if (enableTimer) setTimeLeft(selectedTime);
     }
-  }, [gameStarted]);
+  }, [gameStarted, fetchRandomPokemon, enableTimer, selectedTime]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,8 +111,8 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     const userGuess = guess.trim().toLowerCase();
     const possibleAnswers = [pokemon.nameEn.toLowerCase(), pokemon.nameFr.toLowerCase()];
     if (possibleAnswers.includes(userGuess)) {
-      setPoints(points + 1);
-      setStreak(streak + 1);
+      setPoints((prev) => prev + 1);
+      setStreak((prev) => prev + 1);
       setFeedback('Bravo, bonne réponse !');
       setIsRevealed(true);
     } else {
@@ -117,9 +123,9 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
 
   const handleGiveUp = () => {
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
-    setPoints(Math.max(points - 1, 0));
+    setPoints((prev) => Math.max(prev - 1, 0));
     setStreak(0);
-    setFeedback(`La réponse était : ${pokemon?.nameFr} / ${pokemon?.nameEn}. (-1 point)`);
+    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 point)`);
     setIsRevealed(true);
   };
 
