@@ -125,7 +125,7 @@ const PhotoQuiz: React.FC<PhotoQuizProps> = ({
     if (!pokemon || (enableTimer && timeLeft === 0)) return;
     setPoints((prev) => Math.max(prev - 1, 0));
     setStreak(0);
-    setFeedback(`La réponse était : ${pokemon.nameFr} / ${pokemon.nameEn}. (-1 point)`);
+    setFeedback(`La réponse était : ${pokemon.nameFr}. (-1 point)`);
     setIsRevealed(true);
   };
 
