@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
 const generationRanges: { [gen: number]: [number, number] } = {
-  1: [1, 2],
+  1: [1, 151],
   2: [152, 251],
   3: [252, 386],
   4: [387, 493],
